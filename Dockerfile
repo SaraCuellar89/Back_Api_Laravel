@@ -1,6 +1,7 @@
+# Imagen base
 FROM php:8.2-cli
 
-# Instalar dependencias necesarias para Laravel
+# Instalar dependencias necesarias
 RUN apt-get update && apt-get install -y \
     zip unzip git curl libpng-dev libonig-dev libxml2-dev libzip-dev \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
@@ -8,21 +9,23 @@ RUN apt-get update && apt-get install -y \
 # Instalar Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
-# Copiar el proyecto
+# Directorio de trabajo
 WORKDIR /app
-COPY . /app
 
-# Instalar dependencias de Laravel
+# Copiar el proyecto
+COPY . .
+
+# Instalar dependencias de Laravel (sin dependencias de desarrollo)
 RUN composer install --no-dev --optimize-autoloader
 
-# Generar APP_KEY (solo si no existe)
-RUN php artisan key:generate --force
+# ❌ No generamos la APP_KEY aquí (Render la usará desde variables de entorno)
+# RUN php artisan key:generate --force
 
 # 🔧 Ajustar permisos
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache \
-    && chmod -R 775 /app/storage /app/bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Exponer el puerto
+# Exponer el puerto 8000 (Render lo detecta automáticamente)
 EXPOSE 8000
 
 # Comando para iniciar Laravel
