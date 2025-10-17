@@ -8,7 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VenueController;
 
 // LOGIN / LOGOUT
-Route::post('/', [AuthController::class, 'login']);
+Route::post('/olympics/login', [AuthController::class, 'login']);
 Route::post('/olympics/logout', [AuthController::class, 'logout']);
 
 // EVENTS
