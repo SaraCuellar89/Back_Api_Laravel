@@ -1,32 +1,36 @@
-# Imagen base
-FROM php:8.2-cli
+# Imagen base oficial de PHP con Apache
+FROM php:8.2-apache
 
 # Instalar dependencias necesarias
 RUN apt-get update && apt-get install -y \
     zip unzip git curl libpng-dev libonig-dev libxml2-dev libzip-dev \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
+# Habilitar mod_rewrite para Laravel
+RUN a2enmod rewrite
+
 # Instalar Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
-# Directorio de trabajo
-WORKDIR /app
+# Establecer el directorio de trabajo
+WORKDIR /var/www/html
 
 # Copiar el proyecto
 COPY . .
 
-# Instalar dependencias de Laravel (sin dependencias de desarrollo)
+# Instalar dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# ❌ No generamos la APP_KEY aquí (Render la usará desde variables de entorno)
-# RUN php artisan key:generate --force
-
-# 🔧 Ajustar permisos
-RUN chown -R www-data:www-data storage bootstrap/cache \
+# 🔧 Asegurar que existan los directorios antes de dar permisos
+RUN mkdir -p storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Exponer el puerto 8000 (Render lo detecta automáticamente)
-EXPOSE 8000
+# Establecer DocumentRoot a la carpeta public
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Comando para iniciar Laravel
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# Exponer el puerto (Render usa el 80 automáticamente)
+EXPOSE 80
+
+# Comando por defecto de Apache
+CMD ["apache2-foreground"]
