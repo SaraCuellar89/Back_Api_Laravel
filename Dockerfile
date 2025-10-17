@@ -15,22 +15,28 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 # Establecer el directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar el proyecto
+# Copiar archivos del proyecto
 COPY . .
 
 # Instalar dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# 🔧 Asegurar que existan los directorios antes de dar permisos
-RUN mkdir -p storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache \
+# Crear los directorios necesarios (antes de asignar permisos)
+RUN mkdir -p \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/logs \
+    bootstrap/cache
+
+# Ajustar permisos correctos
+RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 # Establecer DocumentRoot a la carpeta public
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Exponer el puerto (Render usa el 80 automáticamente)
+# Exponer el puerto 80 (Render lo usa automáticamente)
 EXPOSE 80
 
-# Comando por defecto de Apache
+# Comando por defecto
 CMD ["apache2-foreground"]
