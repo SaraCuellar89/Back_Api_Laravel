@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: laravel-backend
+    env: php
+    buildCommand: |
+      composer install
+      php artisan key:generate
+    startCommand: php artisan serve --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: mysql-base1cine.alwaysdata.net
+      - key: DB_PORT
+        value: 3306
+      - key: DB_DATABASE
+        value: base1cine_olympics
+      - key: DB_USERNAME
+        value: base1cine_admin
+      - key: DB_PASSWORD
+        value: contrasena_1234
