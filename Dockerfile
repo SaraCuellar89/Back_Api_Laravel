@@ -13,10 +13,17 @@ WORKDIR /app
 COPY . /app
 
 # Instalar dependencias de Laravel
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
+
+# Generar APP_KEY (solo si no existe)
+RUN php artisan key:generate --force
+
+# 🔧 Ajustar permisos
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache \
+    && chmod -R 775 /app/storage /app/bootstrap/cache
 
 # Exponer el puerto
 EXPOSE 8000
 
-# Iniciar Laravel
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Comando para iniciar Laravel
+CMD php artisan serve --host=0.0.0.0 --port=8000
